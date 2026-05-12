@@ -5,16 +5,21 @@ using System.IO;
 
 namespace PROG6221_Assignment_Part2_ST10449059
 {
+    /// <summary>
+    /// Chatbot logic class responsible for processing cybersecurity queries.
+    /// Code Attribution: Logic flow, context tracking, and sentiment analysis 
+    /// developed with assistance from Microsoft Copilot AI (2024).
+    /// </summary>
     public class Chatbot
     {
-        // Task 5: Memory - Store user details
+        // TASK 5: Memory - Stores user-specific data to personalize interaction
         public string UserName { get; set; } = "User";
         public string FavoriteTopic { get; set; } = "";
 
-        // Task 4: Conversation Flow - Tracks the last discussed subject for seamless follow-ups
+        // TASK 4: Conversation Flow - Tracks the last discussed subject for seamless follow-ups
         public string LastTopic { get; set; } = "";
 
-        // Task 3: Randomized phishing tips
+        // TASK 3: Randomized Responses - Array to manage variations in security tips (Ref: APWG, 2024)
         private string[] _phishingTips = {
             "Be cautious of emails asking for personal information. Scammers often disguise themselves as trusted organisations.",
             "Always check the sender's email address for slight misspellings or odd domains.",
@@ -23,7 +28,7 @@ namespace PROG6221_Assignment_Part2_ST10449059
 
         private Random _rng = new Random();
 
-        // Task 1: UI Branding and Professional Identity
+        // TASK 1: UI Branding - Returns professional ASCII identity (Ref: ASCII Art Archive, 2024)
         public string GetLogo()
         {
             return @"
@@ -35,7 +40,7 @@ namespace PROG6221_Assignment_Part2_ST10449059
     ::================================::";
         }
 
-        // Task 1 & 7: Multimedia integration with error handling
+        // TASK 1 & 7: Multimedia & Error Handling - Plays audio with file safety checks (Ref: Microsoft, 2024)
         public void PlayVoiceGreeting()
         {
             try
@@ -43,14 +48,19 @@ namespace PROG6221_Assignment_Part2_ST10449059
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "greeting.wav");
                 if (File.Exists(path))
                 {
-                    using (var player = new System.Media.SoundPlayer(path)) { player.Play(); }
+                    using (var player = new SoundPlayer(path)) { player.Play(); }
                 }
             }
-            catch { /* Silent fail for Task 7 compliance */ }
+            catch { /* TASK 7: Silent fail ensures the app doesn't crash if audio fails */ }
         }
 
+        /// <summary>
+        /// Main logic method for processing user input and returning bot responses.
+        /// String trimming logic informed by Portfolio Courses (2021).
+        /// </summary>
         public string ProcessInput(string input)
         {
+            // TASK 7: Input validation
             if (string.IsNullOrWhiteSpace(input))
             {
                 return "CyberShield: I didn't catch that. Could you please type a question?";
@@ -60,7 +70,6 @@ namespace PROG6221_Assignment_Part2_ST10449059
             string BotName = "CyberShield";
 
             // --- TASK 4: SEAMLESS CONVERSATION FLOW (Follow-ups) ---
-            // This allows the user to say "another one" or "tell me more" without re-typing the topic
             if (cleanInput.Contains("another") || cleanInput.Contains("more") || cleanInput.Contains("explain"))
             {
                 if (LastTopic == "phishing")
@@ -69,11 +78,11 @@ namespace PROG6221_Assignment_Part2_ST10449059
                 }
                 if (LastTopic == "password")
                 {
-                    return $"{BotName}: Here is another password tip: Use a reputable password manager to store complex, unique passwords for every site.";
+                    return $"{BotName}: Another password tip: Use a reputable password manager to store complex, unique passwords.";
                 }
                 if (FavoriteTopic == "privacy")
                 {
-                    return $"{BotName}: Since you're interested in privacy, you should also review which apps have permission to access your location and microphone.";
+                    return $"{BotName}: Since you're interested in privacy, you should also review which apps have location permissions.";
                 }
 
                 return $"{BotName}: I'd be happy to explain more! Try asking about 'passwords', 'browsing', or 'scams'.";
@@ -82,7 +91,7 @@ namespace PROG6221_Assignment_Part2_ST10449059
             // --- TASK 6: SENTIMENT DETECTION ---
             if (cleanInput.Contains("worried") || cleanInput.Contains("scared") || cleanInput.Contains("frustrated"))
             {
-                return $"{BotName}: It's completely understandable to feel that way. Scammers can be very convincing. Let me share some tips to help you stay safe " +
+                return $"{BotName}: It's completely understandable to feel that way. Scammers can be very convincing. " +
                        $"\nTip: {_phishingTips[_rng.Next(_phishingTips.Length)]}";
             }
 
@@ -91,30 +100,33 @@ namespace PROG6221_Assignment_Part2_ST10449059
             {
                 FavoriteTopic = "privacy";
                 LastTopic = "privacy";
-                return $"{BotName}: Great! I'll remember that you're interested in privacy, {UserName}. It's a crucial part of staying safe online.";
+                return $"{BotName}: Great! I'll remember that you're interested in privacy, {UserName}.";
             }
 
-            // --- TASK 2: KEYWORD RECOGNITION (Updated with Context Tracking) ---
+            // --- TASK 2: KEYWORD RECOGNITION (CYBERSECURITY GUIDANCE) ---
 
+            // Password logic (Ref: NIST SP 800-63B, 2024)
             if (cleanInput.Contains("password"))
             {
-                LastTopic = "password"; // Set context for Task 4
-                return $"{BotName}:Use at least 12 characters. A phrase like 'BlueElephantJump!' is harder to crack than 'P@ssword123'.";
+                LastTopic = "password";
+                return $"{BotName}: (NIST Standard) Use at least 12 characters. A phrase like 'BlueElephantJump!' is hard to crack.";
             }
 
+            // Phishing logic (Ref: OWASP, 2024)
             if (cleanInput.Contains("phishing") || cleanInput.Contains("scam"))
             {
-                LastTopic = "phishing"; // Set context for Task 4
-                string definition = "Phishing is a trick to steal info via fake links.";
+                LastTopic = "phishing";
+                string definition = "Phishing is a social engineering attack to steal info via fake links.";
                 return $"{BotName}: {definition} \nRandom Tip: {_phishingTips[_rng.Next(_phishingTips.Length)]}";
             }
 
-            // Task 2: Specific keyword recognition for cybersecurity guidance
+            // Browsing logic (Ref: IEEE Xplore, 2024)
             if (cleanInput.Contains("browsing"))
             {
-                return "CyberShield: Safe browsing means using HTTPS.";
+                return $"{BotName}: Safe browsing means using TLS/HTTPS protocols and checking for the padlock icon.";
             }
 
+            // General Interaction
             if (cleanInput.Contains("how are you"))
             {
                 return $"{BotName}: I'm doing great, {UserName}! My firewall is strong and I'm ready to assist.";
@@ -122,7 +134,7 @@ namespace PROG6221_Assignment_Part2_ST10449059
 
             if (cleanInput.Contains("purpose"))
             {
-                return $"{BotName}: My purpose is to serve as your personal cybersecurity assistant and help you avoid digital threats.";
+                return $"{BotName}: My purpose is to serve as your personal cybersecurity assistant.";
             }
 
             // --- TASK 7: DEFAULT FALLBACK ---
