@@ -99,20 +99,20 @@ namespace PROG6221_Assignment_Part2_ST10449059
             if (cleanInput.Contains("password"))
             {
                 LastTopic = "password"; // Set context for Task 4
-                return $"{BotName}: (NIST Standard) Use at least 12 characters. A phrase like 'BlueElephantJump!' is harder to crack than 'P@ssword123'.";
+                return $"{BotName}:Use at least 12 characters. A phrase like 'BlueElephantJump!' is harder to crack than 'P@ssword123'.";
             }
 
             if (cleanInput.Contains("phishing") || cleanInput.Contains("scam"))
             {
                 LastTopic = "phishing"; // Set context for Task 4
-                string definition = "(APWG Standard) Phishing is a trick to steal info via fake links.";
+                string definition = "Phishing is a trick to steal info via fake links.";
                 return $"{BotName}: {definition} \nRandom Tip: {_phishingTips[_rng.Next(_phishingTips.Length)]}";
             }
 
             // Task 2: Specific keyword recognition for cybersecurity guidance
             if (cleanInput.Contains("browsing"))
             {
-                return "CyberShield: Safe browsing means using HTTPS. (Ref: Cloudflare, 2024).";
+                return "CyberShield: Safe browsing means using HTTPS.";
             }
 
             if (cleanInput.Contains("how are you"))
