@@ -1,49 +1,67 @@
 using System;
-using System.Data; // Cache data sets locally
+using System.Data;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PROG6221_Assignment_Part2_ST10449059
 {
-    /// <summary>
-    /// Form1 class manages the User Interface, presentation layer grid bindings, and event handling loops.
-    /// </summary>
     public partial class Form1 : Form
     {
-        // Object-Oriented Initialization of our core processing engine logic class
         Chatbot myBot = new Chatbot();
 
         public Form1()
         {
             InitializeComponent();
-            this.AcceptButton = button1; // Maps the keyboard Enter key directly to execute the chat submission button
+
+            // Wire up the KeyDown event directly to the RichTextBox
+            this.richTextBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBox1_KeyDown);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Styling aesthetics matching your design profile setup
+            // 1. Main Form and Console Styling
             this.BackColor = Color.FromArgb(25, 25, 25);
             richTextBox1.BackColor = Color.Black;
             richTextBox1.ForeColor = Color.Cyan;
             richTextBox1.Font = new Font("Consolas", 10);
             richTextBox1.SelectionIndent = 10;
+            richTextBox1.BorderStyle = BorderStyle.None;
 
-            // Display identity branding structures
+            // Display application branding and initial greeting
             richTextBox1.AppendText(myBot.GetLogo() + Environment.NewLine);
             richTextBox1.SelectionColor = Color.Cyan;
-            richTextBox1.AppendText("\nCyberShield: System Online. What is your name, User?\n");
+            richTextBox1.AppendText("\nCyberShield: System Online. What is your name, User?\n\n");
+
+            // Drop the initial input prompt
+            richTextBox1.SelectionColor = Color.LimeGreen;
+            richTextBox1.AppendText("User> ");
 
             myBot.PlayVoiceGreeting();
-            textBox2.Focus();
 
-            // Pull structural layout definitions down from MySQL tables on startup
+            // 2. DataGridView Dark Mode Overhaul
+            dgvTasks.BackgroundColor = Color.FromArgb(25, 25, 25);
+            dgvTasks.BorderStyle = BorderStyle.None;
+            dgvTasks.GridColor = Color.FromArgb(60, 60, 60);
+            dgvTasks.RowHeadersVisible = false;
+            dgvTasks.AllowUserToAddRows = false;
+
+            dgvTasks.DefaultCellStyle.BackColor = Color.FromArgb(35, 35, 35);
+            dgvTasks.DefaultCellStyle.ForeColor = Color.LightGray;
+            dgvTasks.DefaultCellStyle.SelectionBackColor = Color.DarkCyan;
+            dgvTasks.DefaultCellStyle.SelectionForeColor = Color.White;
+            dgvTasks.DefaultCellStyle.Font = new Font("Segoe UI", 9);
+
+            dgvTasks.EnableHeadersVisualStyles = false;
+            dgvTasks.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(20, 20, 20);
+            dgvTasks.ColumnHeadersDefaultCellStyle.ForeColor = Color.Cyan;
+            dgvTasks.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+            dgvTasks.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+
             RefreshTaskList();
+            richTextBox1.Focus(); // Set focus to the terminal immediately
         }
 
-        /// <summary>
-        /// Pulls down a fresh copy of the data rows from the server to keep your visual grid synchronized.
-        /// </summary>
         private void RefreshTaskList()
         {
             try
@@ -57,109 +75,82 @@ namespace PROG6221_Assignment_Part2_ST10449059
             }
         }
 
-        /// <summary>
-        /// Central submission router handling chat interactions and dynamic database triggers.
-        /// </summary>
-        private async void button1_Click(object sender, EventArgs e)
+        // This is the new Terminal Logic that replaces the SEND button
+        private async void richTextBox1_KeyDown(object sender, KeyEventArgs e)
         {
-            string input = textBox2.Text.Trim();
-
-            if (!string.IsNullOrWhiteSpace(input))
+            // Check if the user pressed the Enter key
+            if (e.KeyCode == Keys.Enter)
             {
-                // Print user query onto screen console logger
-                richTextBox1.SelectionColor = Color.White;
-                richTextBox1.AppendText($"\n[{DateTime.Now:HH:mm}] {myBot.UserName}: {input}\n");
-                textBox2.Clear();
+                e.SuppressKeyPress = true; // Prevents the Enter key from just making a blank new line
 
-                // Asynchronous flow delay mimicking calculations
-                await Task.Delay(400);
+                // Grab all the text currently in the console
+                string[] allLines = richTextBox1.Lines;
 
-                if (myBot.UserName == "User")
+                // Look at the very last line where the user was just typing
+                string lastLine = allLines[allLines.Length - 1];
+
+                // Remove the "Name> " prompt to isolate just the command they typed
+                string promptPrefix = $"{myBot.UserName}> ";
+                string input = lastLine.Replace(promptPrefix, "").Trim();
+
+                if (!string.IsNullOrWhiteSpace(input))
                 {
-                    // Catch user registration statement profile
-                    myBot.UserName = input;
-                    richTextBox1.SelectionColor = Color.Cyan;
-                    richTextBox1.AppendText($"CyberShield: Setup complete. Welcome, {myBot.UserName}. How can I help you?\n");
-                }
-                else
-                {
-                    // Pass input parameter down to processing engine layers
-                    string response = myBot.ProcessInput(input);
+                    await Task.Delay(300); // Simulate network thinking
 
-                    // --- DYNAMIC REMINDER COMMAND ROUTER ---
-                    if (response.StartsWith("REMINDER_UPDATE:"))
+                    if (myBot.UserName == "User")
                     {
-                        if (int.TryParse(response.Split(':')[1], out int days))
-                        {
-                            // Ensure the user actually has a valid grid row selected to attach the reminder to
-                            if (dgvTasks.CurrentRow != null && dgvTasks.CurrentRow.Cells["id"].Value != null)
-                            {
-                                int targetId = Convert.ToInt32(dgvTasks.CurrentRow.Cells["id"].Value);
-                                bool success = myBot.UpdateTaskReminder(targetId, days);
-
-                                richTextBox1.SelectionColor = Color.Cyan;
-                                if (success)
-                                {
-                                    richTextBox1.AppendText($"CyberShield: Confirmed. Database entity Record #{targetId} will trigger a reminder in {days} days.\n");
-                                }
-                                else
-                                {
-                                    richTextBox1.AppendText($"CyberShield: Alert. Failed to alter the reminder schedule for Record #{targetId}.\n");
-                                }
-
-                                RefreshTaskList();
-                            }
-                            else
-                            {
-                                richTextBox1.SelectionColor = Color.Orange;
-                                richTextBox1.AppendText("CyberShield: Alert! You must highlight a specific task row in the grid view first before setting a schedule.\n");
-                            }
-                        }
+                        // Registration Phase
+                        myBot.UserName = input;
+                        richTextBox1.SelectionColor = Color.Cyan;
+                        richTextBox1.AppendText($"\nCyberShield: Setup complete. Welcome, {myBot.UserName}. How can I help you?\n\n");
                     }
                     else
                     {
-                        // Standard chat handling
-                        richTextBox1.SelectionColor = Color.Cyan;
-                        richTextBox1.AppendText(response + Environment.NewLine);
+                        // Pass input to NLP engine
+                        string response = myBot.ProcessInput(input);
 
-                        // REFRESH CHECK: If the user just ran a task command, sync our visual UI Grid view automatically!
+                        richTextBox1.SelectionColor = Color.Cyan;
+                        richTextBox1.AppendText($"\n{response}\n\n");
+
+                        // Dynamic UI Synchronization
                         string cleanInp = input.ToLower();
-                        if (cleanInp.StartsWith("add task ") ||
-                            cleanInp.StartsWith("complete task ") || cleanInp.StartsWith("finish task ") ||
-                            cleanInp.StartsWith("delete task ") || cleanInp.StartsWith("remove task "))
+                        if (cleanInp.Contains("add") ||
+                            cleanInp.Contains("complete") || cleanInp.Contains("finish") ||
+                            cleanInp.Contains("delete") || cleanInp.Contains("remove") ||
+                            cleanInp.Contains("remind"))
                         {
                             RefreshTaskList();
                         }
                     }
-                }
 
-                // Append demarcation lines
-                richTextBox1.SelectionColor = Color.FromArgb(40, 40, 40);
-                richTextBox1.AppendText("________________________________________________\n");
-                richTextBox1.ScrollToCaret();
-                textBox2.Focus();
+                    // Drop a fresh prompt for the next command
+                    richTextBox1.SelectionColor = Color.LimeGreen;
+                    richTextBox1.AppendText($"{myBot.UserName}> ");
+                    richTextBox1.ScrollToCaret();
+                }
+                else
+                {
+                    // If they just hit Enter with no text, drop a new prompt on the next line
+                    richTextBox1.AppendText($"\n{myBot.UserName}> ");
+                    richTextBox1.ScrollToCaret();
+                }
+            }
+            // Basic protection to stop the user from backspacing over the prompt prefix
+            else if (e.KeyCode == Keys.Back)
+            {
+                string[] lines = richTextBox1.Lines;
+                if (lines.Length > 0)
+                {
+                    string lastLine = lines[lines.Length - 1];
+                    if (lastLine == $"{myBot.UserName}> ")
+                    {
+                        e.SuppressKeyPress = true; // Stop backspace
+                    }
+                }
             }
         }
 
-        // --- BACKWARD MANUAL UTILITY SUPPORT CHANNELS (Optional Form Buttons) ---
-        private void button2_Click(object sender, EventArgs e)
-        {
-            // Standard backup button click option fallback routing mapping onto string injection commands
-            string textValue = textBox2.Text.Trim();
-            if (!string.IsNullOrWhiteSpace(textValue)) { button1_Click(sender, e); }
-            else { MessageBox.Show("Please type a new task title statement into the text box field area.", "Validation Gate"); }
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Tip: Simply type 'complete task [ID]' directly into the chat console box to finish an item using the AI assistant!", "Direct Chat Tip");
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Tip: Simply type 'delete task [ID]' directly into the chat console box to purge an item using the AI assistant!", "Direct Chat Tip");
-        }
-
+        // Empty event handlers to satisfy the Windows Forms Designer
         private void richTextBox1_TextChanged(object sender, EventArgs e) { }
         private void richTextBox1_TextChanged_1(object sender, EventArgs e) { }
     }
