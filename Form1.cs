@@ -75,5 +75,10 @@ namespace PROG6221_Assignment_Part2_ST10449059
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e) { }
+
+        private void richTextBox1_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }
