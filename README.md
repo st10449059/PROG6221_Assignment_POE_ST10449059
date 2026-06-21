@@ -5,7 +5,8 @@
 https://github.com/st10449059/PROG6221_Assignment_POE_ST10449059
 
 # Commits 
-<img width="1918" height="1018" alt="Screenshot 2026-06-20 222136" src="https://github.com/user-attachments/assets/f0db3d2e-1c16-468d-b7d2-81e821973c1b" />
+<img width="1917" height="900" alt="image" src="https://github.com/user-attachments/assets/05dab741-5ced-40fa-80b8-da35629164de" />
+
 
 
 # Logo 
